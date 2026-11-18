@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Engagement e-card</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&amp;family=Quicksand:wght@500;600;700&amp;display=swap">
+<style>
+:root{--accent:#C2456A;--plum:#6B3A4C;--blush:#FCEEEA}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:#F4DCD5;font-family:'Quicksand',system-ui,sans-serif;color:var(--plum);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.stage{min-height:100vh;min-height:100svh;display:grid;place-items:center;padding:24px 16px}
+.scene{display:flex;flex-direction:column;align-items:center;gap:20px}
+.scene[hidden]{display:none}
+.acc{fill:var(--accent)}
+button{font:inherit;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:3px solid var(--plum);outline-offset:3px}
+
+/* ---------- Envelope ---------- */
+.env-scene{padding-top:90px}
+.envelope{position:relative;width:min(86vw,400px);aspect-ratio:4/3;container-type:inline-size;perspective:1000px}
+.env-back{position:absolute;inset:0;border-radius:4cqw;background:#E7ACA1;z-index:1}
+.letter{position:absolute;left:6%;right:6%;top:6%;height:88%;z-index:2;border-radius:3cqw;background:var(--blush);display:flex;flex-direction:column;align-items:center;padding-top:7cqw;box-shadow:0 2px 8px rgba(107,58,76,.10);transition:transform .8s cubic-bezier(.3,.7,.3,1)}
+.letter svg{width:7cqw;height:7cqw}
+.letter span{margin-top:1.5cqw;font-family:'Dancing Script',cursive;font-weight:700;font-size:9cqw;color:var(--accent)}
+.env-front{position:absolute;inset:0;z-index:3;border-radius:4cqw;overflow:hidden;filter:drop-shadow(0 10px 18px rgba(107,58,76,.15))}
+.env-front svg,.env-flap svg{display:block;width:100%;height:100%}
+.env-flap{position:absolute;left:0;top:0;width:100%;height:56%;z-index:4;transform-origin:50% 0;transition:transform .6s .1s cubic-bezier(.4,.1,.3,1)}
+.seal{position:absolute;left:50%;top:56%;z-index:5;width:17cqw;height:17cqw;min-width:48px;min-height:48px;border:0;border-radius:50%;background:var(--accent);display:grid;place-items:center;cursor:pointer;transform:translate(-50%,-50%);box-shadow:0 0 0 1.4cqw rgba(194,69,106,.18),0 6px 14px rgba(107,58,76,.3);transition:opacity .3s,transform .3s}
+.seal svg{width:45%;height:45%}
+.hint{margin:6px 0 0;font-size:16px;font-weight:600}
+.opening .seal{opacity:0;transform:translate(-50%,-50%) scale(.4);pointer-events:none;animation:none}
+.opening .env-flap{transform:rotateX(180deg)}
+.flap-done .env-flap{z-index:1}
+.letter-up .letter{transform:translateY(-58%)}
+.leaving{animation:fadeDown .45s ease forwards}
+.reset,.reset *{transition:none!important}
+
+/* ---------- Card ---------- */
+.card{position:relative;width:min(92vw,480px);width:min(92vw,480px,calc((100svh - 190px) / 1.4));min-width:280px;aspect-ratio:5/7;container-type:inline-size;background:var(--blush);border-radius:3cqw;overflow:hidden;box-shadow:0 24px 60px rgba(107,58,76,.18),0 2px 6px rgba(107,58,76,.08)}
+.card:focus{outline:none}
+.decor{position:absolute;inset:0;width:100%;height:100%;display:block}
+.content{position:absolute;inset:0;padding:15cqw 11cqw 13cqw;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.illo{position:relative;width:70cqw;flex-shrink:0}
+.illo svg{display:block;width:100%;height:auto}
+.card h1{margin:.4cqw 0 0;font-family:'Dancing Script',cursive;font-weight:700;font-size:12cqw;line-height:1.05;color:var(--accent)}
+.sub{margin:1.4cqw 0 0;font-size:2.8cqw;font-weight:600;letter-spacing:.3em;text-transform:uppercase}
+.divider{display:flex;align-items:center;gap:1.6cqw;margin-top:3.2cqw}
+.divider span{display:block;width:9cqw;height:.25cqw;min-height:1px;border-radius:1px;background:#E9BFB3}
+.divider svg{width:2.8cqw;height:2.8cqw}
+.note-btn{margin-top:4.4cqw;display:inline-flex;align-items:center;gap:1.6cqw;min-height:44px;padding:2.6cqw 5.6cqw;border:0;border-radius:999px;background:var(--accent);color:#fff;font-weight:700;font-size:max(13px,3.8cqw);cursor:pointer;box-shadow:0 1.2cqw 3cqw rgba(194,69,106,.3)}
+.note-btn svg{width:max(13px,3.6cqw);height:max(13px,3.6cqw)}
+
+.hit{position:absolute;padding:0;border:0;background:transparent;border-radius:50%;cursor:pointer}
+.hit-ring{left:41%;top:8%;width:18%;height:33%}
+.hit-birds{left:17%;top:42%;width:66%;height:46%}
+
+.bird-l,.bird-r,.ring,.eye,.twinkle{transform-box:fill-box}
+.bird-l,.bird-r{transform-origin:50% 100%}
+.ring,.eye,.twinkle{transform-origin:50% 50%}
+.cheek{transition:opacity .3s}
+.illo.kiss .cheek{opacity:.95}
+
+.actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+.pill{display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:12px 24px;border:0;border-radius:999px;background:var(--accent);color:#fff;font-weight:700;font-size:16px;cursor:pointer;box-shadow:0 6px 16px rgba(194,69,106,.3)}
+.pill svg{width:18px;height:18px}
+.link{min-height:44px;padding:10px 14px;border:0;background:transparent;color:var(--plum);font-weight:600;font-size:15px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.tip{margin:-6px 0 0;font-size:14px;font-weight:600;transition:opacity .4s}
+.tip.gone{opacity:0}
+
+#cardScene{perspective:1400px}
+
+/* ---------- Inside note ---------- */
+.note{position:relative;width:min(92vw,580px);background:var(--blush);border-radius:20px;padding:124px 52px 104px;box-shadow:0 24px 60px rgba(107,58,76,.18),0 2px 6px rgba(107,58,76,.08)}
+.note:focus{outline:none}
+.note::before{content:"";position:absolute;inset:12px;border:2px solid #E9BFB3;border-radius:14px;pointer-events:none}
+.note::after{content:"";position:absolute;inset:20px;border:2px dotted #ECC7BD;border-radius:10px;pointer-events:none}
+.flora{position:absolute;width:130px;height:130px;pointer-events:none}
+.flora.tl{left:0;top:0}
+.flora.br{right:0;bottom:0;transform:rotate(180deg)}
+.note-top{position:absolute;left:50%;top:38px;width:72px;height:66px;transform:translateX(-50%)}
+.note-body{position:relative}
+.note-body p{margin:0 0 1.15em;font-size:17px;font-weight:500;line-height:1.75}
+.note-sign{position:relative;margin:30px 0 0;text-align:center;font-family:'Dancing Script',cursive;font-weight:700;font-size:40px;line-height:1.1;color:var(--accent)}
+.note-sign svg{display:block;width:22px;height:22px;margin:0 auto 10px}
+@media (max-width:520px){
+  .note{padding:124px 28px 104px}
+  .note-body p{font-size:16px;line-height:1.7}
+  .flora{width:112px;height:112px}
+}
+
+.fx{position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden}
+.p{position:absolute;will-change:transform,opacity}
+.p svg{display:block;width:100%;height:100%}
+
+@media (prefers-reduced-motion: no-preference){
+  .seal{animation:pulse 1.8s ease-in-out infinite}
+  .arrive .card{animation:cardIn .75s cubic-bezier(.2,.8,.2,1) both}
+  .arrive .actions,.arrive .tip{animation:fadeUp .5s .5s ease both}
+  .bird-l{animation:bob 3.2s ease-in-out infinite}
+  .bird-r{animation:bob 3.2s ease-in-out -1.6s infinite}
+  .eye{animation:blink 4.6s infinite}
+  .twinkle{animation:twinkle 2.4s ease-in-out infinite}
+  .illo.kiss .bird-l{animation:leanL 1.2s ease-in-out}
+  .illo.kiss .bird-r{animation:leanR 1.2s ease-in-out}
+  .illo.shine .ring{animation:flip .9s ease-in-out}
+  .note-btn{animation:nudge 2.8s ease-in-out 1.4s infinite}
+  .turning .card{transform-origin:0 50%;animation:turnOpen .7s cubic-bezier(.5,0,.3,1) forwards}
+  .turning .actions,.turning .tip{opacity:0;transition:opacity .3s}
+  .arrive .note{animation:cardIn .7s cubic-bezier(.2,.8,.2,1) both}
+}
+@keyframes nudge{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes turnOpen{to{transform:rotateY(-100deg);opacity:0}}
+@keyframes pulse{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.08)}}
+@keyframes fadeDown{to{opacity:0;transform:translateY(30px)}}
+@keyframes cardIn{from{opacity:0;transform:translateY(40px) scale(.7)}to{opacity:1;transform:none}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+@keyframes leanL{0%{transform:none}35%,70%{transform:translateX(5px) rotate(9deg)}100%{transform:none}}
+@keyframes leanR{0%{transform:none}35%,70%{transform:translateX(-5px) rotate(-9deg)}100%{transform:none}}
+@keyframes flip{0%{transform:none}25%{transform:translateY(-6px) scaleX(-1)}50%{transform:translateY(-10px) scaleX(1)}75%{transform:translateY(-6px) scaleX(-1)}100%{transform:none}}
+@keyframes twinkle{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.6);opacity:.6}}
+</style>
+</head>
+<body>
+<main class="stage">
+
+  <!-- Envelope -->
+  <section class="scene env-scene" id="envelopeScene">
+    <div class="envelope" id="envelope">
+      <div class="env-back"></div>
+      <div class="letter">
+        <svg viewBox="-12 -12 24 24" aria-hidden="true"><path class="acc" d="M0 7 C -9 1, -11 -6, -6 -9 C -3 -11, 0 -8, 0 -5 C 0 -8, 3 -11, 6 -9 C 11 -6, 9 1, 0 7 Z"/></svg>
+        <span>Congratulations</span>
+      </div>
+      <div class="env-front">
+        <svg viewBox="0 0 400 300" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 0 L200 160 L0 300 Z" fill="#F4C6BC"/>
+          <path d="M400 0 L200 160 L400 300 Z" fill="#F4C6BC"/>
+          <path d="M0 300 L200 140 L400 300 Z" fill="#F8D3CA"/>
+        </svg>
+      </div>
+      <div class="env-flap">
+        <svg viewBox="0 0 400 168" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 0 H400 L200 168 Z" fill="#EFB7AC"/>
+        </svg>
+      </div>
+      <button class="seal" id="openBtn" aria-label="Open the card">
+        <svg viewBox="-12 -12 24 24" aria-hidden="true"><path fill="#fff" d="M0 7 C -9 1, -11 -6, -6 -9 C -3 -11, 0 -8, 0 -5 C 0 -8, 3 -11, 6 -9 C 11 -6, 9 1, 0 7 Z"/></svg>
+      </button>
+    </div>
+    <p class="hint">Tap the heart to open</p>
+  </section>
+
+  <!-- Card -->
+  <section class="scene" id="cardScene" hidden>
+    <article class="card" id="card" tabindex="-1" aria-label="Engagement card">
+      <svg class="decor" viewBox="0 0 1000 1400" aria-hidden="true">
+        <rect x="40" y="40" width="920" height="1320" rx="40" fill="none" stroke="#E9BFB3" stroke-width="3"/>
+        <rect x="60" y="60" width="880" height="1280" rx="28" fill="none" stroke="#E9BFB3" stroke-width="3" stroke-dasharray="1 12" stroke-linecap="round"/>
+        <g>
+          <path d="M60 330 C 90 240, 150 160, 262 82" fill="none" stroke="#86B08F" stroke-width="4" stroke-linecap="round"/>
+          <path d="M121 214 C 155 202, 192 212, 222 198" fill="none" stroke="#86B08F" stroke-width="3" stroke-linecap="round"/>
+          <ellipse cx="74" cy="268" rx="24" ry="10" transform="rotate(-55 74 268)" fill="#A9C9A4"/>
+          <ellipse cx="114" cy="250" rx="22" ry="9" transform="rotate(25 114 250)" fill="#8DB894"/>
+          <ellipse cx="122" cy="174" rx="22" ry="9" transform="rotate(-45 122 174)" fill="#A9C9A4"/>
+          <ellipse cx="184" cy="150" rx="22" ry="9" transform="rotate(35 184 150)" fill="#8DB894"/>
+          <ellipse cx="170" cy="222" rx="16" ry="7" transform="rotate(15 170 222)" fill="#A9C9A4"/>
+          <g fill="#F6B3C3"><circle cx="262" cy="63" r="16"/><circle cx="278.2" cy="74.7" r="16"/><circle cx="272" cy="93.8" r="16"/><circle cx="252" cy="93.8" r="16"/><circle cx="245.8" cy="74.7" r="16"/></g>
+          <circle cx="262" cy="80" r="9" fill="#F2C46D"/>
+          <g fill="#F9C9A8"><circle cx="225" cy="186" r="11"/><circle cx="236.4" cy="194.3" r="11"/><circle cx="232" cy="207.7" r="11"/><circle cx="218" cy="207.7" r="11"/><circle cx="213.6" cy="194.3" r="11"/></g>
+          <circle cx="225" cy="198" r="6" fill="#F2C46D"/>
+        </g>
+        <g transform="rotate(180 500 700)">
+          <path d="M60 330 C 90 240, 150 160, 262 82" fill="none" stroke="#86B08F" stroke-width="4" stroke-linecap="round"/>
+          <path d="M121 214 C 155 202, 192 212, 222 198" fill="none" stroke="#86B08F" stroke-width="3" stroke-linecap="round"/>
+          <ellipse cx="74" cy="268" rx="24" ry="10" transform="rotate(-55 74 268)" fill="#A9C9A4"/>
+          <ellipse cx="114" cy="250" rx="22" ry="9" transform="rotate(25 114 250)" fill="#8DB894"/>
+          <ellipse cx="122" cy="174" rx="22" ry="9" transform="rotate(-45 122 174)" fill="#A9C9A4"/>
+          <ellipse cx="184" cy="150" rx="22" ry="9" transform="rotate(35 184 150)" fill="#8DB894"/>
+          <ellipse cx="170" cy="222" rx="16" ry="7" transform="rotate(15 170 222)" fill="#A9C9A4"/>
+          <g fill="#F6B3C3"><circle cx="262" cy="63" r="16"/><circle cx="278.2" cy="74.7" r="16"/><circle cx="272" cy="93.8" r="16"/><circle cx="252" cy="93.8" r="16"/><circle cx="245.8" cy="74.7" r="16"/></g>
+          <circle cx="262" cy="80" r="9" fill="#F2C46D"/>
+          <g fill="#F9C9A8"><circle cx="225" cy="186" r="11"/><circle cx="236.4" cy="194.3" r="11"/><circle cx="232" cy="207.7" r="11"/><circle cx="218" cy="207.7" r="11"/><circle cx="213.6" cy="194.3" r="11"/></g>
+          <circle cx="225" cy="198" r="6" fill="#F2C46D"/>
+        </g>
+        <g class="acc" opacity="0.45">
+          <path transform="translate(870 220) rotate(15) scale(1.6)" d="M0 7 C -9 1, -11 -6, -6 -9 C -3 -11, 0 -8, 0 -5 C 0 -8, 3 -11, 6 -9 C 11 -6, 9 1, 0 7 Z"/>
+          <path transform="translate(122 560) rotate(-12) scale(1.3)" d="M0 7 C -9 1, -11 -6, -6 -9 C -3 -11, 0 -8, 0 -5 C 0 -8, 3 -11, 6 -9 C 11 -6, 9 1, 0 7 Z"/>
+          <path transform="translate(892 770) rotate(10) scale(1.4)" d="M0 7 C -9 1, -11 -6, -6 -9 C -3 -11, 0 -8, 0 -5 C 0 -8, 3 -11, 6 -9 C 11 -6, 9 1, 0 7 Z"/>
+          <path transform="translate(108 1010) rotate(-8) scale(1.6)" d="M0 7 C -9 1, -11 -6, -6 -9 C -3 -11, 0 -8, 0 -5 C 0 -8, 3 -11, 6 -9 C 11 -6, 9 1, 0 7 Z"/>
+          <path transform="translate(520 1312) rotate(6) scale(1.2)" d="M0 7 C -9 1, -11 -6, -6 -9 C -3 -11, 0 -8, 0 -5 C 0 -8, 3 -11, 6 -9 C 11 -6, 9 1, 0 7 Z"/>
+          <path transform="translate(470 98) rotate(-6) scale(1.2)" d="M0 7 C -9 1, -11 -6, -6 -9 C -3 -11, 0 -8, 0 -5 C 0 -8, 3 -11, 6 -9 C 11 -6, 9 1, 0 7 Z"/>
+        </g>
+        <g fill="#E9B949">
+          <path transform="translate(905 430) scale(1.3)" d="M0 -10 L 2.6 -2.6 L 10 0 L 2.6 2.6 L 0 10 L -2.6 2.6 L -10 0 L -2.6 -2.6 Z"/>
+          <path transform="translate(96 780) scale(1.1)" d="M0 -10 L 2.6 -2.6 L 10 0 L 2.6 2.6 L 0 10 L -2.6 2.6 L -10 0 L -2.6 -2.6 Z"/>
+          <path transform="translate(902 1000) scale(0.9)" d="M0 -10 L 2.6 -2.6 L 10 0 L 2.6 2.6 L 0 10 L -2.6 2.6 L -10 0 L -2.6 -2.6 Z"/>
+          <path transform="translate(640 100) scale(0.9)" d="M0 -10 L 2.6 -2.6 L 10 0 L 2.6 2.6 L 0 10 L -2.6 2.6 L -10 0 L -2.6 -2.6 Z"/>
+          <path transform="translate(360 1310)" d="M0 -10 L 2.6 -2.6 L 10 0 L 2.6 2.6 L 0 10 L -2.6 2.6 L -10 0 L -2.6 -2.6 Z"/>
+        </g>
+        <g fill="#F6B3C3">
+          <circle cx="880" cy="320" r="6"/><circle cx="112" cy="420" r="5"/><circle cx="900" cy="590" r="5"/>
+          <circle cx="100" cy="880" r="6"/><circle cx="120" cy="1200" r="5"/><circle cx="820" cy="120" r="5"/>
+        </g>
+      </svg>
+
+      <div class="content">
+        <div class="illo" id="illo">
+          <svg id="illoSvg" viewBox="0 0 520 340" aria-hidden="true">
+            <path d="M20 286 C 150 266, 330 300, 500 262" fill="none" stroke="#9C7A63" stroke-width="7" stroke-linecap="round"/>
+            <ellipse cx="60" cy="270" rx="20" ry="8" transform="rotate(-25 60 270)" fill="#A9C9A4"/>
+            <ellipse cx="86" cy="292" rx="16" ry="7" transform="rotate(30 86 292)" fill="#8DB894"/>
+            <ellipse cx="468" cy="252" rx="20" ry="8" transform="rotate(25 468 252)" fill="#8DB894"/>
+            <ellipse cx="444" cy="282" rx="16" ry="7" transform="rotate(-30 444 282)" fill="#A9C9A4"/>
+
+            <g class="bird-l">
+              <path d="M138 214 L 96 238 L 104 196 Z" fill="#EE8FA6"/>
+              <ellipse cx="190" cy="210" rx="62" ry="58" fill="#F6A9BC"/>
+              <ellipse cx="204" cy="232" rx="36" ry="28" fill="#FDDDE4"/>
+              <ellipse cx="168" cy="220" rx="30" ry="19" transform="rotate(-25 168 220)" fill="#EE8FA6"/>
+              <path d="M196 154 C 192 138, 204 132, 210 142" fill="none" stroke="#EE8FA6" stroke-width="4" stroke-linecap="round"/>
+              <g class="eye"><circle cx="218" cy="192" r="6" fill="#3F2A33"/><circle cx="220" cy="190" r="2" fill="#fff"/></g>
+              <ellipse class="cheek" cx="232" cy="210" rx="10" ry="6" fill="#F27E9B" opacity="0.55"/>
+              <path d="M246 196 L 258 204 L 246 212 Z" fill="#F2B544"/>
+              <path d="M182 266 L 180 279 M200 266 L 202 279" stroke="#E3A33A" stroke-width="4" stroke-linecap="round"/>
+            </g>
+
+            <g class="bird-r">
+              <g transform="translate(520 0) scale(-1 1)">
+                <path d="M138 214 L 96 238 L 104 196 Z" fill="#82BFA6"/>
+                <ellipse cx="190" cy="210" rx="62" ry="58" fill="#A8D8C4"/>
+                <ellipse cx="204" cy="232" rx="36" ry="28" fill="#E1F3EA"/>
+                <ellipse cx="168" cy="220" rx="30" ry="19" transform="rotate(-25 168 220)" fill="#82BFA6"/>
+                <path d="M196 154 C 192 138, 204 132, 210 142" fill="none" stroke="#82BFA6" stroke-width="4" stroke-linecap="round"/>
+                <g class="eye"><circle cx="218" cy="192" r="6" fill="#3F2A33"/><circle cx="216" cy="190" r="2" fill="#fff"/></g>
+                <ellipse class="cheek" cx="232" cy="210" rx="10" ry="6" fill="#F27E9B" opacity="0.55"/>
+                <path d="M246 196 L 258 204 L 246 212 Z" fill="#F2B544"/>
+                <path d="M182 266 L 180 279 M200 266 L 202 279" stroke="#E3A33A" stroke-width="4" stroke-linecap="round"/>
+              </g>
+            </g>
+
+            <g class="ring">
+              <circle cx="260" cy="112" r="22" fill="none" stroke="#E2B04A" stroke-width="7"/>
+              <path d="M243 80 L 250 68 L 270 68 L 277 80 L 260 98 Z" fill="#D6F0F7" stroke="#8CC4D6" stroke-width="2.5" stroke-linejoin="round"/>
+              <path d="M243 80 L 277 80 M252 80 L 260 98 L 268 80" fill="none" stroke="#8CC4D6" stroke-width="2" stroke-linejoin="round"/>
+            </g>
+
+            <g fill="#E9B949">
+              <g class="twinkle"><path transform="translate(214 78) scale(0.9)" d="M0 -10 L 2.6 -2.6 L 10 0 L 2.6 2.6 L 0 10 L -2.6 2.6 L -10 0 L -2.6 -2.6 Z"/></g>
+              <g class="twinkle" style="animation-delay:-.8s"><path transform="translate(308 92) scale(1.1)" d="M0 -10 L 2.6 -2.6 L 10 0 L 2.6 2.6 L 0 10 L -2.6 2.6 L -10 0 L -2.6 -2.6 Z"/></g>
+              <g class="twinkle" style="animation-delay:-1.6s"><path transform="translate(296 44) scale(0.6)" d="M0 -10 L 2.6 -2.6 L 10 0 L 2.6 2.6 L 0 10 L -2.6 2.6 L -10 0 L -2.6 -2.6 Z"/></g>
+            </g>
+            <g class="acc">
+              <path transform="translate(205 50) rotate(-15) scale(1.5)" d="M0 7 C -9 1, -11 -6, -6 -9 C -3 -11, 0 -8, 0 -5 C 0 -8, 3 -11, 6 -9 C 11 -6, 9 1, 0 7 Z"/>
+              <path transform="translate(342 100) rotate(15) scale(1.2)" d="M0 7 C -9 1, -11 -6, -6 -9 C -3 -11, 0 -8, 0 -5 C 0 -8, 3 -11, 6 -9 C 11 -6, 9 1, 0 7 Z"/>
+            </g>
+          </svg>
+          <button class="hit hit-ring" id="ringBtn" aria-label="Make the ring sparkle"></button>
+          <button class="hit hit-birds" id="birdsBtn" aria-label="Make the lovebirds kiss"></button>
+        </div>
+
+        <h1>Congratulations</h1>
+        <p class="sub">on your engagement</p>
+        <div class="divider" aria-hidden="true">
+          <span></span>
+          <svg viewBox="-12 -12 24 24"><path class="acc" transform="translate(0 2)" d="M0 7 C -9 1, -11 -6, -6 -9 C -3 -11, 0 -8, 0 -5 C 0 -8, 3 -11, 6 -9 C 11 -6, 9 1, 0 7 Z"/></svg>
+          <span></span>
+        </div>
+        <button class="note-btn" id="noteBtn">
+          <svg viewBox="-12 -12 24 24" aria-hidden="true"><path fill="#fff" d="M0 7 C -9 1, -11 -6, -6 -9 C -3 -11, 0 -8, 0 -5 C 0 -8, 3 -11, 6 -9 C 11 -6, 9 1, 0 7 Z"/></svg>
+          Read my note
+        </button>
+      </div>
+    </article>
+
+    <div class="actions">
+      <button class="pill love">
+        <svg viewBox="-12 -12 24 24" aria-hidden="true"><path fill="#fff" d="M0 7 C -9 1, -11 -6, -6 -9 C -3 -11, 0 -8, 0 -5 C 0 -8, 3 -11, 6 -9 C 11 -6, 9 1, 0 7 Z"/></svg>
+        Shower them with love
+      </button>
+      <button class="link replay">Replay</button>
+    </div>
+    <p class="tip" id="tip">Psst… tap the lovebirds and the ring</p>
+  </section>
+
+  <!-- Inside note -->
+  <section class="scene" id="noteScene" hidden>
+    <article class="note" id="note" tabindex="-1" aria-label="Note">
+      <svg class="flora tl" viewBox="0 0 340 340" aria-hidden="true">
+        <path d="M60 330 C 90 240, 150 160, 262 82" fill="none" stroke="#86B08F" stroke-width="4" stroke-linecap="round"/>
+        <path d="M121 214 C 155 202, 192 212, 222 198" fill="none" stroke="#86B08F" stroke-width="3" stroke-linecap="round"/>
+        <ellipse cx="74" cy="268" rx="24" ry="10" transform="rotate(-55 74 268)" fill="#A9C9A4"/>
+        <ellipse cx="114" cy="250" rx="22" ry="9" transform="rotate(25 114 250)" fill="#8DB894"/>
+        <ellipse cx="122" cy="174" rx="22" ry="9" transform="rotate(-45 122 174)" fill="#A9C9A4"/>
+        <ellipse cx="184" cy="150" rx="22" ry="9" transform="rotate(35 184 150)" fill="#8DB894"/>
+        <ellipse cx="170" cy="222" rx="16" ry="7" transform="rotate(15 170 222)" fill="#A9C9A4"/>
+        <g fill="#F6B3C3"><circle cx="262" cy="63" r="16"/><circle cx="278.2" cy="74.7" r="16"/><circle cx="272" cy="93.8" r="16"/><circle cx="252" cy="93.8" r="16"/><circle cx="245.8" cy="74.7" r="16"/></g>
+        <circle cx="262" cy="80" r="9" fill="#F2C46D"/>
+        <g fill="#F9C9A8"><circle cx="225" cy="186" r="11"/><circle cx="236.4" cy="194.3" r="11"/><circle cx="232" cy="207.7" r="11"/><circle cx="218" cy="207.7" r="11"/><circle cx="213.6" cy="194.3" r="11"/></g>
+        <circle cx="225" cy="198" r="6" fill="#F2C46D"/>
+      </svg>
+      <svg class="flora br" viewBox="0 0 340 340" aria-hidden="true">
+        <path d="M60 330 C 90 240, 150 160, 262 82" fill="none" stroke="#86B08F" stroke-width="4" stroke-linecap="round"/>
+        <path d="M121 214 C 155 202, 192 212, 222 198" fill="none" stroke="#86B08F" stroke-width="3" stroke-linecap="round"/>
+        <ellipse cx="74" cy="268" rx="24" ry="10" transform="rotate(-55 74 268)" fill="#A9C9A4"/>
+        <ellipse cx="114" cy="250" rx="22" ry="9" transform="rotate(25 114 250)" fill="#8DB894"/>
+        <ellipse cx="122" cy="174" rx="22" ry="9" transform="rotate(-45 122 174)" fill="#A9C9A4"/>
+        <ellipse cx="184" cy="150" rx="22" ry="9" transform="rotate(35 184 150)" fill="#8DB894"/>
+        <ellipse cx="170" cy="222" rx="16" ry="7" transform="rotate(15 170 222)" fill="#A9C9A4"/>
+        <g fill="#F6B3C3"><circle cx="262" cy="63" r="16"/><circle cx="278.2" cy="74.7" r="16"/><circle cx="272" cy="93.8" r="16"/><circle cx="252" cy="93.8" r="16"/><circle cx="245.8" cy="74.7" r="16"/></g>
+        <circle cx="262" cy="80" r="9" fill="#F2C46D"/>
+        <g fill="#F9C9A8"><circle cx="225" cy="186" r="11"/><circle cx="236.4" cy="194.3" r="11"/><circle cx="232" cy="207.7" r="11"/><circle cx="218" cy="207.7" r="11"/><circle cx="213.6" cy="194.3" r="11"/></g>
+        <circle cx="225" cy="198" r="6" fill="#F2C46D"/>
+      </svg>
+      <svg class="note-top" viewBox="196 30 128 116" aria-hidden="true">
+        <circle cx="260" cy="112" r="22" fill="none" stroke="#E2B04A" stroke-width="7"/>
+        <path d="M243 80 L 250 68 L 270 68 L 277 80 L 260 98 Z" fill="#D6F0F7" stroke="#8CC4D6" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M243 80 L 277 80 M252 80 L 260 98 L 268 80" fill="none" stroke="#8CC4D6" stroke-width="2" stroke-linejoin="round"/>
+        <g fill="#E9B949">
+          <path transform="translate(214 78) scale(0.9)" d="M0 -10 L 2.6 -2.6 L 10 0 L 2.6 2.6 L 0 10 L -2.6 2.6 L -10 0 L -2.6 -2.6 Z"/>
+          <path transform="translate(308 92) scale(1.1)" d="M0 -10 L 2.6 -2.6 L 10 0 L 2.6 2.6 L 0 10 L -2.6 2.6 L -10 0 L -2.6 -2.6 Z"/>
+          <path transform="translate(296 44) scale(0.6)" d="M0 -10 L 2.6 -2.6 L 10 0 L 2.6 2.6 L 0 10 L -2.6 2.6 L -10 0 L -2.6 -2.6 Z"/>
+        </g>
+      </svg>
+
+      <div class="note-body">
+        <p>You’ve imported several concepts into your life that involved only you and the people you grew up with. You would have stored in memory a lot, looped, excepted and conditioned a lot and built a core that runs and tunes itself. Today you introduce and import yet another chapter, that adds to the core of your life, I must say, that involves new concepts to co-exist along with the existing set. You probably know this very well, but you may not have heard or thought about it this way. So please read through.</p>
+        <p>As you start your building around the core, you may find some logical or syntactical errors. Not to worry, that’s what conditions are for – you add if(s), else(s), elseif(s) and make it work. You may have to think, and re-define priorities and orders without breaking anything. You may have to keep iterating a chapter again and again as you build around the core, that’s what the loops are for. You may even find some not-so-compatible values pass by from time to time – you got it right, that’s what the exceptions are for – they help us end anything finally peacefully.</p>
+        <p>You start building around the core, before you realise it, it becomes a new core, with all the newly imported chapters in it, it just starts running and taking care of itself, making tiny adjustments it needs as required, persisting things as needed – You take a look at the beautiful core from a distance and feel nothing but the feeling that can’t be expressed in words.</p>
+        <p>I wish you and your fiancée a very happy engaged life and your family all healthy and joyful days going forward! I may have missed a few concepts here and there but I hope you get my message.</p>
+      </div>
+      <p class="note-sign">
+        <svg viewBox="-12 -12 24 24" aria-hidden="true"><path class="acc" d="M0 7 C -9 1, -11 -6, -6 -9 C -3 -11, 0 -8, 0 -5 C 0 -8, 3 -11, 6 -9 C 11 -6, 9 1, 0 7 Z"/></svg>
+        Caushik
+      </p>
+    </article>
+
+    <div class="actions">
+      <button class="pill love">
+        <svg viewBox="-12 -12 24 24" aria-hidden="true"><path fill="#fff" d="M0 7 C -9 1, -11 -6, -6 -9 C -3 -11, 0 -8, 0 -5 C 0 -8, 3 -11, 6 -9 C 11 -6, 9 1, 0 7 Z"/></svg>
+        Shower them with love
+      </button>
+      <button class="link" id="backBtn">Back to the front</button>
+      <button class="link replay">Replay</button>
+    </div>
+  </section>
+
+  <div class="fx" id="fx" aria-hidden="true"></div>
+</main>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $ = function(id){ return document.getElementById(id); };
+  var envScene = $('envelopeScene'), cardScene = $('cardScene'), env = $('envelope');
+  var card = $('card'), illo = $('illo'), illoSvg = $('illoSvg'), fx = $('fx'), tip = $('tip');
+  var noteScene = $('noteScene'), note = $('note');
+  var accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#C2456A';
+  var COLORS = [accent, '#F6A9BC', '#F9C9A8', '#E9B949', '#A8D8C4'];
+  var HEART = 'M0 7 C -9 1, -11 -6, -6 -9 C -3 -11, 0 -8, 0 -5 C 0 -8, 3 -11, 6 -9 C 11 -6, 9 1, 0 7 Z';
+  var SHAPES = {
+    heart: '<svg viewBox="-12 -12 24 24"><path fill="currentColor" d="' + HEART + '"/></svg>',
+    star:  '<svg viewBox="-11 -11 22 22"><path fill="currentColor" d="M0 -10 L 2.6 -2.6 L 10 0 L 2.6 2.6 L 0 10 L -2.6 2.6 L -10 0 L -2.6 -2.6 Z"/></svg>',
+    dot:   '<svg viewBox="-10 -10 20 20"><circle r="7" fill="currentColor"/></svg>',
+    petal: '<svg viewBox="-10 -10 20 20"><ellipse rx="5" ry="9" fill="currentColor"/></svg>'
+  };
+  var opened = false;
+
+  function rand(a, b){ return a + Math.random() * (b - a); }
+  function pick(a){ return a[Math.floor(Math.random() * a.length)]; }
+
+  function particle(shape, color, x, y, size){
+    var el = document.createElement('div');
+    el.className = 'p';
+    el.style.left = (x - size / 2) + 'px';
+    el.style.top = (y - size / 2) + 'px';
+    el.style.width = size + 'px';
+    el.style.height = size + 'px';
+    el.style.color = color;
+    el.innerHTML = SHAPES[shape];
+    fx.appendChild(el);
+    return el;
+  }
+
+  function animate(el, frames, opts){
+    if (!el.animate){ setTimeout(function(){ el.remove(); }, 50); return; }
+    var a = el.animate(frames, opts);
+    a.onfinish = function(){ el.remove(); };
+  }
+
+  function burst(x, y, o){
+    o = o || {};
+    var count = o.count || 8;
+    if (reduce) count = Math.min(count, 4);
+    var spread = (o.spread || 100) * Math.PI / 180, rise = o.rise || 110, sz = o.size || [14, 26], dur = o.duration || 1300;
+    for (var i = 0; i < count; i++){
+      var el = particle(pick(o.shapes || ['heart']), pick(o.colors || COLORS), x, y, rand(sz[0], sz[1]));
+      var ang = -Math.PI / 2 + (Math.random() - 0.5) * spread, d = rise * rand(0.55, 1.15);
+      var dx = Math.cos(ang) * d, dy = Math.sin(ang) * d, r = rand(-40, 40);
+      animate(el, [
+        { transform: 'translate(0,0) scale(.2) rotate(0deg)', opacity: 0 },
+        { transform: 'translate(' + dx * 0.4 + 'px,' + dy * 0.4 + 'px) scale(1) rotate(' + r / 2 + 'deg)', opacity: 1, offset: 0.2 },
+        { transform: 'translate(' + dx + 'px,' + (dy - 20) + 'px) scale(.9) rotate(' + r + 'deg)', opacity: 0 }
+      ], { duration: dur * rand(0.8, 1.2), easing: 'cubic-bezier(.2,.7,.3,1)' });
+    }
+  }
+
+  function shower(){
+    var W = window.innerWidth, H = window.innerHeight, n = reduce ? 14 : 70;
+    for (var i = 0; i < n; i++){
+      setTimeout(function(){
+        var size = rand(12, 26);
+        var el = particle(pick(['heart', 'heart', 'petal', 'star', 'dot']), pick(COLORS), rand(0, W), -30, size);
+        var drift = rand(-120, 120), spin = rand(-360, 360);
+        animate(el, [
+          { transform: 'translate(0,0) rotate(0deg)', opacity: 0 },
+          { transform: 'translate(' + drift * 0.5 + 'px,' + H * 0.15 + 'px) rotate(' + spin * 0.15 + 'deg)', opacity: 1, offset: 0.15 },
+          { transform: 'translate(' + (-drift * 0.3) + 'px,' + H * 0.6 + 'px) rotate(' + spin * 0.6 + 'deg)', opacity: 1, offset: 0.6 },
+          { transform: 'translate(' + drift + 'px,' + (H + 80) + 'px) rotate(' + spin + 'deg)', opacity: 0.85 }
+        ], { duration: rand(2600, 4200), easing: 'linear' });
+      }, i * (reduce ? 80 : 40));
+    }
+  }
+
+  function svgPoint(x, y){
+    var r = illoSvg.getBoundingClientRect();
+    return { x: r.left + r.width * x / 520, y: r.top + r.height * y / 340 };
+  }
+
+  function play(cls){
+    illo.classList.remove(cls);
+    void illo.getBoundingClientRect();
+    illo.classList.add(cls);
+    clearTimeout(illo['t_' + cls]);
+    illo['t_' + cls] = setTimeout(function(){ illo.classList.remove(cls); }, 1300);
+  }
+
+  function hideTip(){ tip.classList.add('gone'); }
+
+  function showCard(){
+    envScene.hidden = true;
+    cardScene.hidden = false;
+    cardScene.classList.remove('arrive');
+    void cardScene.offsetWidth;
+    cardScene.classList.add('arrive');
+    card.focus({ preventScroll: true });
+    setTimeout(function(){
+      var r = card.getBoundingClientRect();
+      burst(r.left + r.width / 2, r.top + r.height * 0.22, { count: 18, shapes: ['heart', 'star', 'dot'], spread: 220, rise: 200 });
+    }, reduce ? 0 : 550);
+  }
+
+  $('openBtn').addEventListener('click', function(){
+    if (opened) return;
+    opened = true;
+    if (reduce){ showCard(); return; }
+    env.classList.add('opening');
+    setTimeout(function(){ env.classList.add('flap-done'); }, 600);
+    setTimeout(function(){ env.classList.add('letter-up'); }, 650);
+    setTimeout(function(){ envScene.classList.add('leaving'); }, 1450);
+    setTimeout(showCard, 1880);
+  });
+
+  $('birdsBtn').addEventListener('click', function(){
+    play('kiss');
+    hideTip();
+    setTimeout(function(){
+      var p = svgPoint(260, 196);
+      burst(p.x, p.y, { count: 7, shapes: ['heart'], colors: [accent, '#F6A9BC', '#F27E9B'], spread: 70, rise: 140 });
+    }, reduce ? 0 : 380);
+  });
+
+  $('ringBtn').addEventListener('click', function(){
+    play('shine');
+    hideTip();
+    var p = svgPoint(260, 95);
+    burst(p.x, p.y, { count: 14, shapes: ['star'], colors: ['#E9B949', '#F2C46D', '#8CC4D6', '#FFFFFF'], spread: 360, rise: 90, size: [10, 20], duration: 1100 });
+  });
+
+  card.addEventListener('click', function(e){
+    if (e.target.closest && e.target.closest('button')) return;
+    burst(e.clientX, e.clientY, { count: 6, shapes: ['heart'], spread: 120, rise: 90, size: [12, 22] });
+  });
+
+  function showNote(){
+    cardScene.hidden = true;
+    cardScene.classList.remove('turning', 'arrive');
+    noteScene.hidden = false;
+    noteScene.classList.remove('arrive');
+    void noteScene.offsetWidth;
+    noteScene.classList.add('arrive');
+    window.scrollTo(0, 0);
+    note.focus({ preventScroll: true });
+    setTimeout(function(){
+      var r = note.getBoundingClientRect();
+      burst(r.left + r.width / 2, r.top + 70, { count: 12, shapes: ['heart', 'star'], spread: 220, rise: 150 });
+    }, reduce ? 0 : 450);
+  }
+
+  $('noteBtn').addEventListener('click', function(){
+    hideTip();
+    if (reduce){ showNote(); return; }
+    cardScene.classList.remove('arrive');
+    cardScene.classList.add('turning');
+    setTimeout(showNote, 650);
+  });
+
+  $('backBtn').addEventListener('click', function(){
+    noteScene.hidden = true;
+    noteScene.classList.remove('arrive');
+    cardScene.hidden = false;
+    cardScene.classList.remove('arrive', 'turning');
+    void cardScene.offsetWidth;
+    cardScene.classList.add('arrive');
+    window.scrollTo(0, 0);
+    card.focus({ preventScroll: true });
+  });
+
+  document.querySelectorAll('.love').forEach(function(b){ b.addEventListener('click', shower); });
+
+  document.querySelectorAll('.replay').forEach(function(b){
+    b.addEventListener('click', function(){
+      opened = false;
+      cardScene.hidden = true;
+      noteScene.hidden = true;
+      cardScene.classList.remove('arrive', 'turning');
+      noteScene.classList.remove('arrive');
+      tip.classList.remove('gone');
+      env.classList.add('reset');
+      env.classList.remove('opening', 'flap-done', 'letter-up');
+      envScene.classList.remove('leaving');
+      envScene.hidden = false;
+      void env.offsetWidth;
+      env.classList.remove('reset');
+      window.scrollTo(0, 0);
+      $('openBtn').focus();
+    });
+  });
+})();
+</script>
+</body>
+</html>
